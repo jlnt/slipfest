@@ -29,7 +29,6 @@
  *                                                                             *
  */
 
-
 #define H_CloseHandle 0xBFD87FEC
 #define H_CreateFileA 0xBD2BE000
 #define H_CreateProcessA 0xF390B59F
@@ -39,6 +38,7 @@
 #define H_GetCommandLineA 0x9B81B77B
 #define H_GetModuleFileNameA 0x6BB22D83
 #define H_GetModuleHandleA 0x48269992
+#define H_GetStartupInfoA 0x1EBC33D7
 #define H_LoadLibraryA 0x74776072
 #define H_MessageBoxA 0x1545E26D
 #define H_Sleep 0x4D86D96A

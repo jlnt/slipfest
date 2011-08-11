@@ -33,6 +33,8 @@
 
 extern HWND hDlg;
 extern HANDLE hRemoteProc;
+extern HWND targethwnd;
+
 
 void addbacklog(char *);
 void showlasterror(char *);

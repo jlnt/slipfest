@@ -38,7 +38,7 @@
 
 #include "stdafx.h"
 
-#define VERSION "1.03 CanSecWest edition"
+#define VERSION "1.05 beta"
 
 HWND hDlg;
 HANDLE hRemoteProc;
@@ -307,7 +307,7 @@ int loadpe(struct exe_header *e, u8 *mem, int file)
 	e->ihdr = (struct image_file_header *)(e->pesig + 1);
 	e->ohdr = (struct image_optional_header *)(e->ihdr + 1);
 	e->ohdr_plus = 0;
-	e->dir = (struct image_directory *)((u8 *)e->ohdr + sizeof(*e->ohdr));
+	e->dir  = (struct image_directory *)((u8 *)e->ohdr + sizeof(*e->ohdr));
 	e->sect = (struct image_section_header *)((u8 *)e->ohdr + e->ihdr->size_of_optional_header);
 
 	switch (e->ohdr->magic) {
@@ -428,6 +428,8 @@ void help(void)
 "The fake retaddr shellcode scans memory for the selected pattern from a base adress, and it will crash the target process if it does not find what it wants.\n"
 "In a remote process, the base address is either k32 or the PE.\n"
 "From the stack of the current process, the base address is chosen from the list, and the target zone is patched to ensure the opcodes are found.\n"
+"CreateReplace will launch a new instance of internet explorer in suspended state, and replace the code at its entry point with the getcmdline shellcode. Useful to test if you can use iexplore when openprocess is blocked.\n"
+"\n"
 ;
 
 	MessageBox(hDlg, hmsg, "System Level Intrusion Prevention Framework Evaluation Suite and Toolkit", 0);

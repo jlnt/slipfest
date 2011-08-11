@@ -47,6 +47,7 @@
 #define ID_SC_RETMEMRWX                 32867
 #define ID_SC_RETMEMRX                  32868
 #define ID_EXPLOITS_SHELLC_RETCALLRETRET 32870
+#define ID_SC_MISC                      32872
 #define ID_SC_RETMEMRW                  32873
 #define ID_SC_RETMEMR                   32874
 #define ID_DEV_OPENRO                   32881
@@ -81,6 +82,9 @@
 #define ID_DBG_UNHOOKLIB                32927
 #define ID_DBG_UNHOOKLIBEX              32928
 #define ID_BINDEXEC                     32930
+#define ID_SHATTER                      32931
+#define ID_SHATTER_INJECT               32932
+#define ID_SHELLCODES_CREATEREPLACE     32933
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -89,7 +93,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        136
-#define _APS_NEXT_COMMAND_VALUE         32931
+#define _APS_NEXT_COMMAND_VALUE         32934
 #define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           110
 #endif

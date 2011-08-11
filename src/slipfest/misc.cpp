@@ -35,6 +35,8 @@
 
 #define showlastsyserror(base) do { getnativeprocaddress(RtlNtStatusToDosError); SetLastError(RtlNtStatusToDosError(ntstatus)); showlasterror(base); } while (0)
 
+HWND targethwnd;
+
 void listmodules(HANDLE phandle, int newtarget)
 {
 #define MODLISTSZ 200
@@ -183,25 +185,25 @@ void CALLBACK waitandchangetarget(void)
 		return;
 	}
 
-	HWND target;
-	target = WindowFromPoint(pt);
-	if (!target) {
+	targethwnd;
+	targethwnd = WindowFromPoint(pt);
+	if (!targethwnd) {
 		showlasterror("windowfrompoint");
 		return;
 	}
 
 	/* retrieve window info */
-	if (!GetClassName(target, buf, 128)) {
+	if (!GetClassName(targethwnd, buf, 128)) {
 		showlasterror("getclassname");
 		return;
 	}
 	addbacklog(buf);
 
-	if (GetWindowText(target, buf, 128))
+	if (GetWindowText(targethwnd, buf, 128))
 		addbacklog(buf);
 
 	DWORD tid;
-	tid = GetWindowThreadProcessId(target, &pid);
+	tid = GetWindowThreadProcessId(targethwnd, &pid);
 	if (!tid || !pid) {
 		showlasterror("getwindowthreadpid");
 		return;
@@ -1034,6 +1036,7 @@ struct systable {
 	unsigned short limit;
 	unsigned long  base;
 };
+
 void show_proc_state(void)
 {
 	struct systable idt, gdt, ldt, tss;

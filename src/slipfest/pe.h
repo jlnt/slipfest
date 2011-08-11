@@ -246,15 +246,15 @@ struct image_optional_header_plus
 struct image_section_header
 {
   char name[8];
-  u32 virtual_size;
-  u32 virtual_address;
-  u32 size_of_raw_data;
-  u32 pointer_to_raw_data;
-  u32 pointer_to_relocations;
-  u32 pointer_to_linenumbers;
-  u16 number_of_relocations;
-  u16 number_of_linenumbers;
-  u32 characteristics;
+  u32 virtual_size;				//  8
+  u32 virtual_address;			//  c
+  u32 size_of_raw_data;			// 10
+  u32 pointer_to_raw_data;		// 14
+  u32 pointer_to_relocations;	// 18
+  u32 pointer_to_linenumbers;	// 1c
+  u16 number_of_relocations;	// 20
+  u16 number_of_linenumbers;	// 22
+  u32 characteristics;			// 24
 };
 
 //

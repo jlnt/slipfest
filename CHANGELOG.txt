@@ -1,3 +1,14 @@
+2006-10-13: - added createreplace test: createprocess iexplore and replace .text with shellcode w/o openprocess
+
+2006-08-25: - added shatter-style payload injection (not fully working - need to check unicode)
+
+2006-07-04: - fixed bind and execute shellcode
+
+2006-03-30: - version 1.04 beta, more space (0x300 bytes) for shellcode on the
+              stack
+              fixed menu entries (edi instead of reg)
+              fixed makebeep.sys (allows testing "inject into ring0")
+
 2006-03-30: - version 1.03, fixed bug related to the previous one, and make
               spoof edi use edi, doh!
               CanSecWest edition, first release to the public!

