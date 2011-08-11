@@ -1,0 +1,19 @@
+2006-03-30: - version 1.03, fixed bug related to the previous one, and make
+              spoof edi use edi, doh!
+              CanSecWest edition, first release to the public!
+
+2006-03-30: - version 1.02, fixed a bug where the k32
+              scanner starts at UTRegister, first release to the public
+
+2006-03-27: - version 1.01
+
+2006-03-27: - added consistency checking of remote/local and stack/nonstack with
+              type of shellcode
+
+2006-03-22: - added support for showing min/max values during ASLR test, and for
+              all thread aggregation
+
+2006-03-14: - added support for PE Exports Forwarding in find_proc (fixes crash
+              on ExitThread on Windows Vista)
+
+2006-02-24: - version 1.0

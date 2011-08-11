@@ -1,0 +1,109 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// French (France) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WIN DIALOGEX 22, 17, 184, 62
+STYLE DS_SETFONT | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU
+CAPTION "Module controller"
+FONT 8, "System", 0, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_EDIT1,5,3,161,12,ES_AUTOHSCROLL | WS_GROUP
+    PUSHBUTTON      "...",IDC_OPEN,168,5,11,10,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "install",IDC_INSTALL,5,17,42,11,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "start",IDC_START,49,17,42,11,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "stop",IDC_STOP,93,17,42,11,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "uninstall",IDC_UNINSTALL,137,17,42,11,0,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "test inject into ring0",IDC_HACK,5,33,86,11,0,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "fix PE checksum",IDC_CKSUM,5,46,86,11,0,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "dump sdt",IDC_TEST,137,33,42,11,0,WS_EX_STATICEDGE
+    PUSHBUTTON      "quit",IDC_QUIT,137,46,42,11,0,WS_EX_STATICEDGE
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_WIN, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 59
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // French (France) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

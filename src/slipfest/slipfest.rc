@@ -1,0 +1,266 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// French (France) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_SLIPFEST            ICON                    "slipfest.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_WIN DIALOGEX 22, 17, 424, 242
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "S.L.I.P.F.E.S.T."
+MENU IDR_MENU1
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
+BEGIN
+    EDITTEXT        IDC_EDIT1,36,2,80,12,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIT2,175,2,80,12,ES_AUTOHSCROLL
+    CONTROL         "dll/pid",IDC_STATIC,"Static",WS_GROUP | 0x20,8,3,21,8
+    CONTROL         "proc/addr",IDC_STATIC,"Static",WS_GROUP | 0x20,137,3,34,
+                    9
+    EDITTEXT        IDC_LOG,0,34,424,207,ES_MULTILINE | ES_AUTOHSCROLL | 
+                    ES_READONLY | NOT WS_BORDER | WS_VSCROLL | WS_HSCROLL,
+                    WS_EX_STATICEDGE
+    CONTROL         "run in remote process",IDC_CHK_RMTRUN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,53,20,85,8
+    CONTROL         "run on stack",IDC_CHK_STKRUN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,144,20,59,8
+    LTEXT           "shellcode:",IDC_STATIC,8,20,36,8
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU1 MENU 
+BEGIN
+    POPUP "&General"
+    BEGIN
+        MENUITEM "&Save log",                   ID_LOG_SAVE
+        MENUITEM "&Flush log",                  ID_LOG_FLUSH
+        MENUITEM SEPARATOR
+        MENUITEM "&Hash procname",              ID_DEBUG_HASHPROCNAME
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_QUIT
+    END
+    POPUP "&Misc"
+    BEGIN
+        MENUITEM "Show &ASLR",                  ID_TESTASLR
+        MENUITEM SEPARATOR
+        MENUITEM "Get &debug privilege",        ID_DBGPRIV
+        MENUITEM SEPARATOR
+        POPUP "Device a&ccess"
+        BEGIN
+            MENUITEM "Open &readonly",              ID_DEV_OPENRO
+            MENUITEM "Open read&write",             ID_DEV_OPENRW
+            MENUITEM SEPARATOR
+            MENUITEM "PhysicalMemory",              ID_DEVICEACCESS_PHYSICALMEMORY
+            , GRAYED
+            MENUITEM "/dev/pm",                     ID_PM_D_PM
+            MENUITEM "/??/glbroot/dev/pm",          ID_PM_GG_D_PM
+            MENUITEM "/lnk1/pm",                    ID_PM_1_PM
+            MENUITEM "/lnk2",                       ID_PM_2
+            MENUITEM "/dev/lnk3/pm",                ID_PM_D_3_PM
+            MENUITEM "/dev/lnk3/lnk3/lnk3/pm",      ID_PM_D_3_3_3_PM
+            MENUITEM "/dev/lnk4/lnk1/pm",           ID_PM_D_4_1_PM
+            MENUITEM "/dev/lnk5",                   ID_PM_LD_4_1_PM
+            MENUITEM SEPARATOR
+            MENUITEM "Harddisk0/Partition0",        ID_DEVICEACCESS_HARDDISK0
+            , GRAYED
+            MENUITEM "/dev/hd0/p0",                 ID_HD_D_HD_P
+            MENUITEM "/lnk6/p0",                    ID_HD_6
+            MENUITEM "/lnk7",                       32899
+            MENUITEM "/??/glbroot/7",               ID_HD_GG_7
+            MENUITEM SEPARATOR
+            MENUITEM "Remove &links",               ID_DEV_CLEANLINKS
+        END
+        MENUITEM "List kernel &modules",        ID_LISTKMODS
+        MENUITEM SEPARATOR
+        MENUITEM "List all &hooks",             ID_DBG_LISTALLHOOKS
+        MENUITEM "List hooks in lib",           ID_DBG_LISTHOOKSLIB
+        MENUITEM "&Remove hooks in lib",        ID_DBG_UNHOOKLIB
+        MENUITEM "Remove hooks - ex",           ID_DBG_UNHOOKLIBEX
+        MENUITEM SEPARATOR
+        MENUITEM "Show opcodes",                ID_DBG_SHOWOPCODES
+        MENUITEM "Patch memory",                ID_DBG_INT3
+        MENUITEM "Dump memory",                 ID_DBG_DUMPMEM
+        MENUITEM SEPARATOR
+        MENUITEM "show processor state",        ID_SHOWPROCSTATE
+        MENUITEM SEPARATOR
+        POPUP "&CSA"
+        BEGIN
+            MENUITEM "&Ioctl",                      ID_DISABLECSA_IOCTL
+            , GRAYED
+            MENUITEM "&Shatter",                    ID_DISABLECSA_SHATTER
+            , GRAYED
+        END
+    END
+    POPUP "&Shellcodes"
+    BEGIN
+        MENUITEM "Target by &mouse",            ID_TARGET_BYMOUSE
+        MENUITEM "Target by &pid",              ID_TARGET_BYPID
+        MENUITEM SEPARATOR
+        POPUP "&Access control"
+        BEGIN
+            POPUP "Spawn a &process"
+            BEGIN
+                MENUITEM "WinExec",                     ID_PROC_WINEXEC
+                MENUITEM "CreateProcess",               ID_PROC_CREATEPROCESS
+
+            END
+            POPUP "Create a &file"
+            BEGIN
+                MENUITEM "CreateFile",                  ID_FILE_CREATEFILE
+                MENUITEM "NtCreateFile",                ID_FILE_NTCREATEFILE
+                , GRAYED
+            END
+        END
+        POPUP "WinExec fake &ret"
+        BEGIN
+            MENUITEM "basic",                       ID_EXPLOITS_SHELLC_SIMPLE
+
+            MENUITEM ".ret",                        ID_EXPLOITS_SHELLC_RETRET
+
+            MENUITEM "call reg.ret",                ID_EXPLOITS_SHELLC_RETCALL
+
+			MENUITEM "call reg.(ret x 400)",		ID_EXPLOITS_SHELLC_RETCALLRETRET
+
+            MENUITEM "call reg.leave ret",          ID_EXPLOITS_SHELLC_RETCALLLEAVE
+
+            MENUITEM "call edi.ret - spoof edi",    ID_EXPLOITS_SHELLC_RETCALLEDIRET
+
+            MENUITEM "call reg.jmp esi",            ID_EXPLOITS_SHELLC_RETCALLJMPESI
+
+            MENUITEM "call edi.jmp esi - spoof edi", 
+                                                    ID_EXPLOITS_SHELLC_RETCALLEDIJMPESI
+
+            MENUITEM "call addr.ret",               ID_EXPLOITS_SHELLC_RETCALLADDR
+
+            MENUITEM "fake frame",                  ID_EXPLOITS_SHELLC_FRAME
+            MENUITEM SEPARATOR
+            MENUITEM "Ret to PE",                   ID_SC_RETPE
+            MENUITEM "Ret to kernel32",             ID_SC_RETK32
+            MENUITEM "Ret to heap rwx",             ID_SC_RETMEMRWX
+            MENUITEM "Ret to heap rx",              ID_SC_RETMEMRX
+            MENUITEM "Ret to heap rw",              ID_SC_RETMEMRW
+            MENUITEM "Ret to heap r",               ID_SC_RETMEMR
+        END
+        POPUP "&Egghunt"
+        BEGIN
+            MENUITEM "Inject egg",                  ID_EXPLOITS_EGG_INJECT
+            MENUITEM "Egghunt",                     ID_EXPLOITS_EGG_HUNT
+            MENUITEM "Egghunt safeseh",             ID_EXPLOITS_EGG_HUNTSAFESEH
+
+        END
+        MENUITEM "Test NX",                     ID_DBG_NX
+        MENUITEM "Getcmdline",                  ID_GETCMDLINE
+        MENUITEM "ExitProcess",                 ID_EXITPROCESS
+        MENUITEM "Bind executer",               ID_BINDEXEC
+        MENUITEM SEPARATOR
+        POPUP "Entercept"
+        BEGIN
+            MENUITEM "Call &unhooker",              ID_ENTERCEPT_CALLUNHOOKER
+
+        END
+        MENUITEM "patch setabortproc",          32923
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&Help",                       ID_HELP
+        MENUITEM "&About",                      ID_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_WIN, DIALOG
+    BEGIN
+        RIGHTMARGIN, 288
+        BOTTOMMARGIN, 241
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // French (France) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
